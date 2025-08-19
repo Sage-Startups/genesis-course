@@ -10,6 +10,7 @@ const Header = () => {
     { name: "Features", href: "#features" },
     { name: "How it Works", href: "#how-it-works" },
     { name: "Pricing", href: "#pricing" },
+    { name: "Dashboard", href: "/dashboard" },
     { name: "Support", href: "#support" }
   ];
 
@@ -28,13 +29,23 @@ const Header = () => {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             {navigation.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className="text-muted-foreground hover:text-foreground transition-colors duration-200"
-              >
-                {item.name}
-              </a>
+              item.href.startsWith('/') ? (
+                <Link
+                  key={item.name}
+                  to={item.href}
+                  className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+                >
+                  {item.name}
+                </Link>
+              ) : (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  className="text-muted-foreground hover:text-foreground transition-colors duration-200"
+                >
+                  {item.name}
+                </a>
+              )
             ))}
           </nav>
 
@@ -62,14 +73,25 @@ const Header = () => {
           <div className="md:hidden py-4 border-t border-border/50 bg-background/95 backdrop-blur-sm">
             <nav className="flex flex-col gap-4">
               {navigation.map((item) => (
-                <a
-                  key={item.name}
-                  href={item.href}
-                  className="text-muted-foreground hover:text-foreground transition-colors duration-200 py-2"
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  {item.name}
-                </a>
+                item.href.startsWith('/') ? (
+                  <Link
+                    key={item.name}
+                    to={item.href}
+                    className="text-muted-foreground hover:text-foreground transition-colors duration-200 py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.name}
+                  </Link>
+                ) : (
+                  <a
+                    key={item.name}
+                    href={item.href}
+                    className="text-muted-foreground hover:text-foreground transition-colors duration-200 py-2"
+                    onClick={() => setIsMenuOpen(false)}
+                  >
+                    {item.name}
+                  </a>
+                )
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
                 <Button variant="ghost" size="sm" className="justify-start" asChild>
