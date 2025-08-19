@@ -57,7 +57,9 @@ const Auth = () => {
     if (error) {
       setError(error.message);
     } else {
-      setMessage("Check your email for the confirmation link!");
+      setMessage("Account created successfully! Redirecting to choose your plan...");
+      // Redirect to tiers page after successful signup
+      setTimeout(() => navigate("/tiers"), 2000);
     }
     setLoading(false);
   };
