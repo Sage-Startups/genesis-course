@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Sparkles, BookOpen } from "lucide-react";
+import { Link } from "react-router-dom";
 import dashboardMockup from "@/assets/dashboard-mockup.jpg";
 
 const Hero = () => {
@@ -29,13 +30,17 @@ const Hero = () => {
 
           {/* CTA buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-16">
-            <Button variant="hero" size="lg" className="text-lg px-8 py-4 h-auto">
-              Start Free Trial
-              <ArrowRight className="h-5 w-5" />
+            <Button variant="hero" size="lg" className="text-lg px-8 py-4 h-auto" asChild>
+              <Link to="/auth">
+                Start Free Trial
+                <ArrowRight className="h-5 w-5" />
+              </Link>
             </Button>
-            <Button variant="outline" size="lg" className="text-lg px-8 py-4 h-auto bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20">
-              <BookOpen className="h-5 w-5" />
-              View Demo
+            <Button variant="outline" size="lg" className="text-lg px-8 py-4 h-auto bg-white/10 backdrop-blur-sm border-white/30 text-white hover:bg-white/20" asChild>
+              <Link to="/auth">
+                <BookOpen className="h-5 w-5" />
+                View Demo
+              </Link>
             </Button>
           </div>
 

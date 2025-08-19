@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { BookOpen, Menu, X } from "lucide-react";
 import { useState } from "react";
+import { Link } from "react-router-dom";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -39,11 +40,11 @@ const Header = () => {
 
           {/* Desktop CTA */}
           <div className="hidden md:flex items-center gap-4">
-            <Button variant="ghost" size="sm">
-              Sign In
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/auth">Sign In</Link>
             </Button>
-            <Button variant="hero" size="sm">
-              Start Free Trial
+            <Button variant="hero" size="sm" asChild>
+              <Link to="/auth">Start Free Trial</Link>
             </Button>
           </div>
 
@@ -71,11 +72,11 @@ const Header = () => {
                 </a>
               ))}
               <div className="flex flex-col gap-2 pt-4 border-t border-border/50">
-                <Button variant="ghost" size="sm" className="justify-start">
-                  Sign In
+                <Button variant="ghost" size="sm" className="justify-start" asChild>
+                  <Link to="/auth">Sign In</Link>
                 </Button>
-                <Button variant="hero" size="sm">
-                  Start Free Trial
+                <Button variant="hero" size="sm" asChild>
+                  <Link to="/auth">Start Free Trial</Link>
                 </Button>
               </div>
             </nav>
