@@ -19,7 +19,7 @@ export const CoursePreview: React.FC<CoursePreviewProps> = ({ course, isOpen, on
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            {course.isAIGenerated && (
+            {course.isAiGenerated && (
               <Badge variant="outline" className="text-xs">
                 AI Generated
               </Badge>

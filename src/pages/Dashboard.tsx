@@ -11,7 +11,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Plus, Search, MoreHorizontal, Edit, Copy, Download, Trash2, DollarSign, BookOpen, TrendingUp, Users, Eye, Wand2 } from 'lucide-react';
 import { CourseForm } from '@/components/CourseForm';
 import { CoursePreview } from '@/components/CoursePreview';
-import { useCourses, Course } from '@/hooks/useCourses';
+import { useCourses, Course, PLAN_LIMITS } from '@/hooks/useCourses';
 import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 
@@ -132,7 +132,7 @@ export const Dashboard = () => {
             <div>
               <h1 className="text-3xl font-bold">Course Dashboard</h1>
               <p className="text-muted-foreground">
-                Manage your courses • {userPlan.name} Plan ({courses.length}/{userPlan.maxCourses} courses)
+                Manage your courses • {userPlan} Plan ({courses.length}/{PLAN_LIMITS[userPlan]} courses)
               </p>
             </div>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
@@ -298,7 +298,7 @@ export const Dashboard = () => {
                           <Badge variant="secondary">
                             {course.category}
                           </Badge>
-                          {course.isAIGenerated && (
+                          {course.isAiGenerated && (
                             <Badge variant="outline" className="text-xs">
                               <Wand2 className="mr-1 h-3 w-3" />
                               AI
