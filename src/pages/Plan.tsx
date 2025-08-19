@@ -4,11 +4,11 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Check, ArrowLeft, Crown, Zap, Rocket } from "lucide-react";
+import { Check, ArrowLeft, Crown, Zap, Rocket, Gift, Star, Building } from "lucide-react";
 import { Link } from "react-router-dom";
 import { User } from "@supabase/supabase-js";
 
-const Tiers = () => {
+const Plan = () => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -46,13 +46,12 @@ const Tiers = () => {
       price: "$0",
       period: "forever",
       description: "Perfect for getting started",
-      icon: <Check className="h-6 w-6" />,
+      icon: <Gift className="h-6 w-6" />,
       features: [
-        "3 courses per month",
+        "1 course per month",
         "Basic AI course generation",
         "Standard templates",
-        "Email support",
-        "Basic analytics"
+        "Email support"
       ],
       buttonText: "Continue Free",
       variant: "outline" as const,
@@ -60,12 +59,12 @@ const Tiers = () => {
     },
     {
       name: "Basic",
-      price: "$9",
+      price: "$49",
       period: "month",
       description: "For individual creators",
-      icon: <Zap className="h-6 w-6" />,
+      icon: <Star className="h-6 w-6" />,
       features: [
-        "15 courses per month",
+        "3 courses per month",
         "Advanced AI generation",
         "Custom templates",
         "Priority email support",
@@ -78,12 +77,12 @@ const Tiers = () => {
     },
     {
       name: "Premium",
-      price: "$29",
+      price: "$199",
       period: "month",
       description: "For professional educators",
       icon: <Crown className="h-6 w-6" />,
       features: [
-        "50 courses per month",
+        "Unlimited courses",
         "Premium AI models",
         "White-label options",
         "Live chat support",
@@ -97,10 +96,10 @@ const Tiers = () => {
     },
     {
       name: "Enterprise",
-      price: "$99",
+      price: "$299",
       period: "month",
       description: "For organizations and teams",
-      icon: <Rocket className="h-6 w-6" />,
+      icon: <Building className="h-6 w-6" />,
       features: [
         "Unlimited courses",
         "Custom AI training",
@@ -219,4 +218,4 @@ const Tiers = () => {
   );
 };
 
-export default Tiers;
+export default Plan;

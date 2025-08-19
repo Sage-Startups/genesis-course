@@ -58,8 +58,8 @@ const Auth = () => {
       setError(error.message);
     } else {
       setMessage("Account created successfully! Redirecting to choose your plan...");
-      // Redirect to tiers page after successful signup
-      setTimeout(() => navigate("/tiers"), 2000);
+      // Redirect to plan page after successful signup
+      setTimeout(() => navigate("/plan"), 2000);
     }
     setLoading(false);
   };
