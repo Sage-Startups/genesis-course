@@ -1,5 +1,19 @@
 import { useState, useEffect } from 'react';
 
+export interface CourseLesson {
+  title: string;
+  description: string;
+  duration: string;
+  concepts: string[];
+}
+
+export interface CourseModule {
+  moduleTitle: string;
+  objectives: string[];
+  estimatedTime: string;
+  lessons: CourseLesson[];
+}
+
 export interface Course {
   id: string;
   title: string;
@@ -13,6 +27,8 @@ export interface Course {
   updatedAt: string;
   tags: string[];
   thumbnail?: string;
+  outline?: CourseModule[];
+  isAIGenerated?: boolean;
 }
 
 export interface UserPlan {

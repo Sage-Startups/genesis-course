@@ -1,28 +1,29 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Search, Filter, MoreHorizontal, Edit, Copy, Download, Trash2, BookOpen, Users, DollarSign, TrendingUp } from 'lucide-react';
-import { useCourses, Course } from '@/hooks/useCourses';
+import { Plus, Search, MoreHorizontal, Edit, Copy, Download, Trash2, DollarSign, BookOpen, TrendingUp, Users, Eye, Wand2 } from 'lucide-react';
 import { CourseForm } from '@/components/CourseForm';
+import { CoursePreview } from '@/components/CoursePreview';
+import { useCourses, Course } from '@/hooks/useCourses';
 import { useToast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
 
-const Dashboard = () => {
+export const Dashboard = () => {
   const { courses, userPlan, createCourse, updateCourse, deleteCourse, duplicateCourse, exportCourse, canCreateCourse } = useCourses();
   const { toast } = useToast();
-  
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [previewCourse, setPreviewCourse] = useState<Course | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
 
   // Filter courses based on search and filters
   const filteredCourses = courses.filter(course => {
@@ -66,18 +67,19 @@ const Dashboard = () => {
     
     updateCourse(editingCourse.id, courseData);
     setEditingCourse(null);
+    setIsEditDialogOpen(false);
     toast({
       title: "Course updated",
       description: "Your course has been successfully updated.",
     });
   };
 
-  const handleDuplicate = (course: Course) => {
+  const handleDuplicate = (courseId: string) => {
     try {
-      duplicateCourse(course.id);
+      duplicateCourse(courseId);
       toast({
         title: "Course duplicated",
-        description: `"${course.title}" has been duplicated successfully.`,
+        description: "Course has been duplicated successfully.",
       });
     } catch (error) {
       toast({
@@ -88,11 +90,11 @@ const Dashboard = () => {
     }
   };
 
-  const handleDelete = (course: Course) => {
-    deleteCourse(course.id);
+  const handleDelete = (courseId: string) => {
+    deleteCourse(courseId);
     toast({
       title: "Course deleted",
-      description: `"${course.title}" has been removed from your library.`,
+      description: "Course has been removed from your library.",
     });
   };
 
@@ -123,45 +125,38 @@ const Dashboard = () => {
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-card border-b border-border">
+      <div className="border-b">
         <div className="container mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-foreground">Course Dashboard</h1>
+              <h1 className="text-3xl font-bold">Course Dashboard</h1>
               <p className="text-muted-foreground">
                 Manage your courses • {userPlan.name} Plan ({courses.length}/{userPlan.maxCourses} courses)
               </p>
             </div>
-            <div className="flex items-center gap-4">
-              <Link to="/plan">
-                <Button variant="outline" size="sm">
-                  Upgrade Plan
+            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button disabled={!canCreateCourse()}>
+                  <Plus className="h-4 w-4 mr-2" />
+                  New Course
                 </Button>
-              </Link>
-              <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button disabled={!canCreateCourse()}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    New Course
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-                  <DialogHeader>
-                    <DialogTitle>Create New Course</DialogTitle>
-                    <DialogDescription>
-                      Fill in the details below to create a new course.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <CourseForm
-                    onSubmit={handleCreateCourse}
-                    onCancel={() => setIsCreateDialogOpen(false)}
-                  />
-                </DialogContent>
-              </Dialog>
-            </div>
+              </DialogTrigger>
+              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Create New Course</DialogTitle>
+                  <DialogDescription>
+                    Fill in the details below to create a new course or use AI to generate comprehensive content.
+                  </DialogDescription>
+                </DialogHeader>
+                <CourseForm
+                  onSubmit={handleCreateCourse}
+                  onCancel={() => setIsCreateDialogOpen(false)}
+                />
+              </DialogContent>
+            </Dialog>
           </div>
         </div>
-      </header>
+      </div>
 
       <div className="container mx-auto px-6 py-8">
         {/* Stats Cards */}
@@ -223,7 +218,6 @@ const Dashboard = () => {
               
               <Select value={statusFilter} onValueChange={setStatusFilter}>
                 <SelectTrigger className="w-full sm:w-[150px]">
-                  <Filter className="h-4 w-4 mr-2" />
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -284,7 +278,6 @@ const Dashboard = () => {
                     <TableHead>Duration</TableHead>
                     <TableHead>Price</TableHead>
                     <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -299,15 +292,24 @@ const Dashboard = () => {
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell>{course.category}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Badge variant="secondary">
+                            {course.category}
+                          </Badge>
+                          {course.isAIGenerated && (
+                            <Badge variant="outline" className="text-xs">
+                              <Wand2 className="mr-1 h-3 w-3" />
+                              AI
+                            </Badge>
+                          )}
+                        </div>
+                      </TableCell>
                       <TableCell>{getDifficultyBadge(course.difficulty)}</TableCell>
                       <TableCell>{course.duration}</TableCell>
-                      <TableCell>${course.price.toFixed(2)}</TableCell>
+                      <TableCell>${course.price}</TableCell>
                       <TableCell>{getStatusBadge(course.status)}</TableCell>
                       <TableCell>
-                        {new Date(course.createdAt).toLocaleDateString()}
-                      </TableCell>
-                      <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
                             <Button variant="ghost" className="h-8 w-8 p-0">
@@ -315,42 +317,49 @@ const Dashboard = () => {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => setEditingCourse(course)}>
-                              <Edit className="h-4 w-4 mr-2" />
+                            {course.outline && course.outline.length > 0 && (
+                              <DropdownMenuItem onClick={() => setPreviewCourse(course)}>
+                                <Eye className="mr-2 h-4 w-4" />
+                                Preview
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => {
+                              setEditingCourse(course);
+                              setIsEditDialogOpen(true);
+                            }}>
+                              <Edit className="mr-2 h-4 w-4" />
                               Edit
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => handleDuplicate(course)}>
-                              <Copy className="h-4 w-4 mr-2" />
+                            <DropdownMenuItem onClick={() => handleDuplicate(course.id)}>
+                              <Copy className="mr-2 h-4 w-4" />
                               Duplicate
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => exportCourse(course.id, 'json')}>
-                              <Download className="h-4 w-4 mr-2" />
+                              <Download className="mr-2 h-4 w-4" />
                               Export JSON
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => exportCourse(course.id, 'csv')}>
-                              <Download className="h-4 w-4 mr-2" />
+                              <Download className="mr-2 h-4 w-4" />
                               Export CSV
                             </DropdownMenuItem>
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <DropdownMenuItem onSelect={(e) => e.preventDefault()}>
-                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  <Trash2 className="mr-2 h-4 w-4" />
                                   Delete
                                 </DropdownMenuItem>
                               </AlertDialogTrigger>
                               <AlertDialogContent>
                                 <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Course</AlertDialogTitle>
+                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
                                   <AlertDialogDescription>
-                                    Are you sure you want to delete "{course.title}"? This action cannot be undone.
+                                    This action cannot be undone. This will permanently delete the course
+                                    "{course.title}" and remove all of its data.
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
                                   <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDelete(course)}
-                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                                  >
+                                  <AlertDialogAction onClick={() => handleDelete(course.id)}>
                                     Delete
                                   </AlertDialogAction>
                                 </AlertDialogFooter>
@@ -368,8 +377,8 @@ const Dashboard = () => {
         </Card>
 
         {/* Edit Course Dialog */}
-        <Dialog open={!!editingCourse} onOpenChange={() => setEditingCourse(null)}>
-          <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+        <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+          <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Edit Course</DialogTitle>
               <DialogDescription>
@@ -380,11 +389,17 @@ const Dashboard = () => {
               <CourseForm
                 course={editingCourse}
                 onSubmit={handleUpdateCourse}
-                onCancel={() => setEditingCourse(null)}
+                onCancel={() => setIsEditDialogOpen(false)}
               />
             )}
           </DialogContent>
         </Dialog>
+
+        <CoursePreview 
+          course={previewCourse}
+          isOpen={!!previewCourse}
+          onClose={() => setPreviewCourse(null)}
+        />
       </div>
     </div>
   );
