@@ -207,12 +207,6 @@ const Plan = () => {
             </Card>
           ))}
         </div>
-
-        <div className="text-center mt-16">
-          <p className="text-white/80 text-sm">
-            All plans include a 14-day free trial. Cancel anytime.
-          </p>
-        </div>
       </div>
     </div>
   );
