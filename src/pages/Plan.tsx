@@ -95,11 +95,11 @@ const Plan = () => {
       popular: true
     },
     {
-      name: "Enterprise",
-      price: "$299",
-      period: "month",
-      description: "For organizations and teams",
-      icon: <Building className="h-6 w-6" />,
+      name: "Lifetime",
+      price: "$1999",
+      period: "lifetime",
+      description: "One-time payment, lifetime access",
+      icon: <Crown className="h-6 w-6" />,
       features: [
         "Unlimited courses",
         "Custom AI training",
@@ -110,7 +110,7 @@ const Plan = () => {
         "Custom deployment",
         "Advanced security"
       ],
-      buttonText: "Choose Enterprise",
+      buttonText: "Choose Lifetime",
       variant: "default" as const,
       popular: false
     }
