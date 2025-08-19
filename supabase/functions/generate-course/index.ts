@@ -37,51 +37,39 @@ serve(async (req) => {
 
     console.log('Generating course with AI:', { title, category, difficulty });
 
-    const prompt = `Create a comprehensive course outline for: "${title}"
+    const prompt = `Create a comprehensive course about "${title}" with the following specifications:
 
-Course Details:
 - Category: ${category}
 - Difficulty Level: ${difficulty}
 - Duration: ${duration}
-- Target Audience: ${targetAudience}
 - Learning Objectives: ${learningObjectives}
+- Target Audience: ${targetAudience}
 ${additionalRequirements ? `- Additional Requirements: ${additionalRequirements}` : ''}
 
-Please create a detailed course structure with:
-1. A compelling course description (2-3 paragraphs)
-2. A comprehensive outline with 6-10 modules
-3. For each module, include:
-   - Module title
-   - Learning objectives
-   - 3-5 lessons with detailed descriptions
-   - Estimated time for completion
-   - Key concepts covered
-4. Suggested price range based on content depth and market standards
-5. Relevant tags (5-7 keywords)
+Generate a detailed course with comprehensive modules and lessons. Each lesson should include rich, educational content in markdown format that provides real learning value. The content should be substantial (at least 200-500 words per lesson) and include practical examples, explanations, and actionable insights.
 
-Format the response as a JSON object with the following structure:
+Return ONLY valid JSON in this exact format:
 {
-  "description": "detailed course description",
-  "price": suggested_price_number,
-  "tags": ["tag1", "tag2", "tag3"],
+  "description": "string - comprehensive course description",
+  "price": number,
+  "tags": ["string", "string"],
   "outline": [
     {
-      "moduleTitle": "Module 1 Title",
-      "objectives": ["objective1", "objective2"],
-      "estimatedTime": "2 hours",
+      "moduleTitle": "string",
+      "objectives": ["string", "string"],
+      "estimatedTime": "string",
       "lessons": [
         {
-          "title": "Lesson Title",
-          "description": "Detailed lesson description",
-          "duration": "30 minutes",
-          "concepts": ["concept1", "concept2"]
+          "title": "string",
+          "description": "string - brief lesson overview",
+          "duration": "string",
+          "concepts": ["string", "string"],
+          "content": "string - detailed lesson content in markdown format with headers, examples, and practical information"
         }
       ]
     }
   ]
-}
-
-Make this course comprehensive, engaging, and valuable for the target audience.`;
+}`;
 
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -133,7 +121,8 @@ Make this course comprehensive, engaging, and valuable for the target audience.`
                 title: "Getting Started",
                 description: "Introduction to the course material",
                 duration: "30 minutes",
-                concepts: ["Overview", "Prerequisites"]
+                concepts: ["Overview", "Prerequisites"],
+                content: "# Getting Started\n\nWelcome to this course! In this introduction, we'll cover the basics and set expectations for your learning journey.\n\n## What You'll Learn\n\n- Course overview and structure\n- Prerequisites and required knowledge\n- How to get the most out of this course\n\n## Course Structure\n\nThis course is designed to take you from beginner to proficient through hands-on examples and practical exercises."
               }
             ]
           }

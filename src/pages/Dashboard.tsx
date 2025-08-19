@@ -13,6 +13,7 @@ import { CourseForm } from '@/components/CourseForm';
 import { CoursePreview } from '@/components/CoursePreview';
 import { useCourses, Course } from '@/hooks/useCourses';
 import { useToast } from '@/hooks/use-toast';
+import { useNavigate } from 'react-router-dom';
 
 export const Dashboard = () => {
   const { courses, userPlan, createCourse, updateCourse, deleteCourse, duplicateCourse, exportCourse, canCreateCourse } = useCourses();

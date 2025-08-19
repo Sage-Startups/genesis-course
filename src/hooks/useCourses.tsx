@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface CourseLesson {
   title: string;
   description: string;
   duration: string;
   concepts: string[];
+  content?: string; // Rich lesson content in markdown
 }
 
 export interface CourseModule {
@@ -23,104 +25,251 @@ export interface Course {
   duration: string;
   price: number;
   status: 'Draft' | 'Published' | 'Archived';
-  createdAt: string;
-  updatedAt: string;
   tags: string[];
   thumbnail?: string;
   outline?: CourseModule[];
-  isAIGenerated?: boolean;
+  isAiGenerated?: boolean;
+  created_at?: string;
+  updated_at?: string;
 }
 
-export interface UserPlan {
-  name: string;
-  maxCourses: number;
-}
+export type UserPlan = 'free' | 'basic' | 'premium' | 'lifetime';
 
-const PLAN_LIMITS: Record<string, number> = {
-  'Free': 3,
-  'Basic': 10,
-  'Premium': 50,
-  'Lifetime': 999
+export const PLAN_LIMITS: Record<UserPlan, number> = {
+  'free': 3,
+  'basic': 10,
+  'premium': 50,
+  'lifetime': 999
 };
 
 export const useCourses = () => {
   const [courses, setCourses] = useState<Course[]>([]);
-  const [userPlan, setUserPlan] = useState<UserPlan>({ name: 'Free', maxCourses: 3 });
+  const [userPlan, setUserPlan] = useState<UserPlan>('free');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
+  // Check authentication status
   useEffect(() => {
-    // Load courses from localStorage
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+      setIsLoading(false);
+    };
+    
+    checkAuth();
+    
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+    
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // Load courses on mount
+  useEffect(() => {
+    if (!isLoading) {
+      loadCourses();
+    }
+  }, [isAuthenticated, isLoading]);
+
+  // Save user plan to localStorage whenever it changes
+  useEffect(() => {
+    localStorage.setItem('userPlan', userPlan);
+  }, [userPlan]);
+
+  const loadCourses = async () => {
+    if (isAuthenticated) {
+      // Load from Supabase
+      try {
+        const { data, error } = await supabase
+          .from('courses')
+          .select('*')
+          .order('created_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        const formattedCourses = data?.map(course => ({
+          id: course.id,
+          title: course.title || '',
+          description: course.description || '',
+          category: course.category || '',
+          difficulty: (course.difficulty as 'Beginner' | 'Intermediate' | 'Advanced') || 'Beginner',
+          duration: course.duration || '',
+          price: course.price || 0,
+          status: (course.status as 'Draft' | 'Published' | 'Archived') || 'Draft',
+          tags: course.tags || [],
+          thumbnail: course.thumbnail,
+          outline: course.outline as unknown as CourseModule[],
+          isAiGenerated: course.is_ai_generated || false,
+          created_at: course.created_at,
+          updated_at: course.updated_at,
+        })) || [];
+        
+        setCourses(formattedCourses);
+      } catch (error) {
+        console.error('Error loading courses from Supabase:', error);
+        // Fallback to localStorage
+        loadLocalCourses();
+      }
+    } else {
+      // Load from localStorage
+      loadLocalCourses();
+    }
+  };
+
+  const loadLocalCourses = () => {
     const savedCourses = localStorage.getItem('courses');
+    const savedUserPlan = localStorage.getItem('userPlan') as UserPlan;
+    
     if (savedCourses) {
       setCourses(JSON.parse(savedCourses));
     }
-
-    // Load user plan from localStorage
-    const savedPlan = localStorage.getItem('userPlan');
-    if (savedPlan) {
-      const plan = JSON.parse(savedPlan);
-      setUserPlan({
-        name: plan.name,
-        maxCourses: PLAN_LIMITS[plan.name] || 3
-      });
+    if (savedUserPlan) {
+      setUserPlan(savedUserPlan);
     }
-  }, []);
-
-  const saveCourses = (newCourses: Course[]) => {
-    setCourses(newCourses);
-    localStorage.setItem('courses', JSON.stringify(newCourses));
   };
 
-  const createCourse = (courseData: Omit<Course, 'id' | 'createdAt' | 'updatedAt'>) => {
-    if (courses.length >= userPlan.maxCourses) {
-      throw new Error(`Course limit reached. Upgrade your plan to create more than ${userPlan.maxCourses} courses.`);
-    }
+  const saveToLocalStorage = (updatedCourses: Course[]) => {
+    localStorage.setItem('courses', JSON.stringify(updatedCourses));
+  };
 
+  const createCourse = async (courseData: Omit<Course, 'id'>) => {
     const newCourse: Course = {
       ...courseData,
-      id: crypto.randomUUID(),
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
+      id: Date.now().toString(),
     };
 
-    const updatedCourses = [...courses, newCourse];
-    saveCourses(updatedCourses);
-    return newCourse;
-  };
+    if (isAuthenticated) {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('No authenticated user');
 
-  const updateCourse = (id: string, updates: Partial<Course>) => {
-    const updatedCourses = courses.map(course =>
-      course.id === id
-        ? { ...course, ...updates, updatedAt: new Date().toISOString() }
-        : course
-    );
-    saveCourses(updatedCourses);
-  };
+        const { data, error } = await supabase
+          .from('courses')
+          .insert({
+            user_id: user.id,
+            title: newCourse.title,
+            description: newCourse.description,
+            category: newCourse.category,
+            difficulty: newCourse.difficulty,
+            duration: newCourse.duration,
+            price: newCourse.price,
+            status: newCourse.status,
+            tags: newCourse.tags,
+            thumbnail: newCourse.thumbnail,
+            is_ai_generated: newCourse.isAiGenerated || false,
+            outline: newCourse.outline as any,
+          })
+          .select()
+          .single();
 
-  const deleteCourse = (id: string) => {
-    const updatedCourses = courses.filter(course => course.id !== id);
-    saveCourses(updatedCourses);
-  };
+        if (error) throw error;
 
-  const duplicateCourse = (id: string) => {
-    const courseToDuplicate = courses.find(course => course.id === id);
-    if (!courseToDuplicate) return;
+        const formattedCourse: Course = {
+          id: data.id,
+          title: data.title || '',
+          description: data.description || '',
+          category: data.category || '',
+          difficulty: (data.difficulty as any) || 'Beginner',
+          duration: data.duration || '',
+          price: data.price || 0,
+          status: (data.status as any) || 'Draft',
+          tags: data.tags || [],
+          thumbnail: data.thumbnail,
+          outline: data.outline as unknown as CourseModule[],
+          isAiGenerated: data.is_ai_generated || false,
+        };
 
-    if (courses.length >= userPlan.maxCourses) {
-      throw new Error(`Course limit reached. Upgrade your plan to create more than ${userPlan.maxCourses} courses.`);
+        setCourses(prev => [formattedCourse, ...prev]);
+      } catch (error) {
+        console.error('Error creating course in Supabase:', error);
+        // Fallback to local storage
+        setCourses(prev => [...prev, newCourse]);
+        saveToLocalStorage([...courses, newCourse]);
+      }
+    } else {
+      setCourses(prev => [...prev, newCourse]);
+      saveToLocalStorage([...courses, newCourse]);
     }
+  };
 
-    const duplicatedCourse: Course = {
-      ...courseToDuplicate,
-      id: crypto.randomUUID(),
-      title: `${courseToDuplicate.title} (Copy)`,
-      status: 'Draft',
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-    };
+  const updateCourse = async (id: string, updates: Partial<Course>) => {
+    if (isAuthenticated) {
+      try {
+        const { error } = await supabase
+          .from('courses')
+          .update({
+            title: updates.title,
+            description: updates.description,
+            category: updates.category,
+            difficulty: updates.difficulty,
+            duration: updates.duration,
+            price: updates.price,
+            status: updates.status,
+            tags: updates.tags,
+            thumbnail: updates.thumbnail,
+            is_ai_generated: updates.isAiGenerated,
+            outline: updates.outline as any,
+          })
+          .eq('id', id);
 
-    const updatedCourses = [...courses, duplicatedCourse];
-    saveCourses(updatedCourses);
-    return duplicatedCourse;
+        if (error) throw error;
+
+        setCourses(prev => prev.map(course => 
+          course.id === id ? { ...course, ...updates } : course
+        ));
+      } catch (error) {
+        console.error('Error updating course in Supabase:', error);
+        // Fallback to local update
+        const updatedCourses = courses.map(course => 
+          course.id === id ? { ...course, ...updates } : course
+        );
+        setCourses(updatedCourses);
+        saveToLocalStorage(updatedCourses);
+      }
+    } else {
+      const updatedCourses = courses.map(course => 
+        course.id === id ? { ...course, ...updates } : course
+      );
+      setCourses(updatedCourses);
+      saveToLocalStorage(updatedCourses);
+    }
+  };
+
+  const deleteCourse = async (id: string) => {
+    if (isAuthenticated) {
+      try {
+        const { error } = await supabase
+          .from('courses')
+          .delete()
+          .eq('id', id);
+
+        if (error) throw error;
+
+        setCourses(prev => prev.filter(course => course.id !== id));
+      } catch (error) {
+        console.error('Error deleting course from Supabase:', error);
+        // Fallback to local deletion
+        const updatedCourses = courses.filter(course => course.id !== id);
+        setCourses(updatedCourses);
+        saveToLocalStorage(updatedCourses);
+      }
+    } else {
+      const updatedCourses = courses.filter(course => course.id !== id);
+      setCourses(updatedCourses);
+      saveToLocalStorage(updatedCourses);
+    }
+  };
+
+  const duplicateCourse = async (id: string) => {
+    const course = courses.find(c => c.id === id);
+    if (course) {
+      await createCourse({
+        ...course,
+        title: `${course.title} (Copy)`,
+        status: 'Draft',
+      });
+    }
   };
 
   const exportCourse = (id: string, format: 'json' | 'csv') => {
@@ -147,8 +296,6 @@ export const useCourses = () => {
         ['Price', course.price.toString()],
         ['Status', course.status],
         ['Tags', course.tags.join('; ')],
-        ['Created At', course.createdAt],
-        ['Updated At', course.updatedAt]
       ];
 
       const csvContent = csvData.map(row => 
@@ -165,7 +312,7 @@ export const useCourses = () => {
     }
   };
 
-  const canCreateCourse = () => courses.length < userPlan.maxCourses;
+  const canCreateCourse = () => courses.length < PLAN_LIMITS[userPlan];
 
   return {
     courses,
