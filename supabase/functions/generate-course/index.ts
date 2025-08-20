@@ -124,7 +124,7 @@ In the next lesson, we'll start applying these concepts in practical ways.`
 });
 
 const tryGenerateWithModel = async (model: string, prompt: string): Promise<any> => {
-  const isNewerModel = ['gpt-5-2025-08-07', 'gpt-5-mini-2025-08-07', 'gpt-4.1-2025-04-14'].includes(model);
+  const isNewerModel = ['gpt-4.1-2025-04-14'].includes(model);
   
   const requestBody: any = {
     model,
@@ -245,20 +245,20 @@ Return ONLY valid JSON in this exact format:
       responseStructure = 'full course structure with outline array';
     }
 
-    // Try with primary model first
+    // Try with reliable models first
     let courseData;
     try {
-      courseData = await tryGenerateWithModel('gpt-5-2025-08-07', prompt);
+      courseData = await tryGenerateWithModel('gpt-4o', prompt);
     } catch (error) {
       console.log('Primary model failed, trying fallback model:', error.message);
       
       try {
-        courseData = await tryGenerateWithModel('gpt-4.1-2025-04-14', prompt);
+        courseData = await tryGenerateWithModel('gpt-4o-mini', prompt);
       } catch (fallbackError) {
         console.log('Fallback model failed, trying final fallback:', fallbackError.message);
         
         try {
-          courseData = await tryGenerateWithModel('gpt-5-mini-2025-08-07', prompt);
+          courseData = await tryGenerateWithModel('gpt-4.1-2025-04-14', prompt);
         } catch (finalError) {
           console.error('All models failed, using fallback structure:', finalError.message);
           
