@@ -6,6 +6,7 @@ import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Plan from "./pages/Plan";
 import Dashboard from "./pages/Dashboard";
+import CourseBuilder from "./pages/CourseBuilder";
 import CourseReader from "./pages/CourseReader";
 import NotFound from "./pages/NotFound";
 
@@ -21,6 +22,8 @@ const App = () => (
         <Route path="/auth" element={<Auth />} />
         <Route path="/plan" element={<Plan />} />
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/builder" element={<CourseBuilder />} />
+        <Route path="/builder/:id" element={<CourseBuilder />} />
         <Route path="/courses/:id" element={<CourseReader />} />
         {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
         <Route path="*" element={<NotFound />} />

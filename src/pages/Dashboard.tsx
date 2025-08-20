@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom';
 export const Dashboard = () => {
   const { courses, userPlan, createCourse, updateCourse, deleteCourse, duplicateCourse, exportCourse, canCreateCourse } = useCourses();
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
@@ -135,26 +136,13 @@ export const Dashboard = () => {
                 Manage your courses • {userPlan} Plan ({courses.length}/{PLAN_LIMITS[userPlan]} courses)
               </p>
             </div>
-            <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-              <DialogTrigger asChild>
-                <Button disabled={!canCreateCourse()}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Course
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-                <DialogHeader>
-                  <DialogTitle>Create New Course</DialogTitle>
-                  <DialogDescription>
-                    Fill in the details below to create a new course or use AI to generate comprehensive content.
-                  </DialogDescription>
-                </DialogHeader>
-                <CourseForm
-                  onSubmit={handleCreateCourse}
-                  onCancel={() => setIsCreateDialogOpen(false)}
-                />
-              </DialogContent>
-            </Dialog>
+            <Button 
+              disabled={!canCreateCourse()}
+              onClick={() => navigate('/builder')}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Course
+            </Button>
           </div>
         </div>
       </div>
@@ -263,7 +251,7 @@ export const Dashboard = () => {
                     : "Try adjusting your search or filters."}
                 </p>
                 {courses.length === 0 && canCreateCourse() && (
-                  <Button onClick={() => setIsCreateDialogOpen(true)}>
+                  <Button onClick={() => navigate('/builder')}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create Your First Course
                   </Button>
@@ -319,17 +307,20 @@ export const Dashboard = () => {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             {course.outline && course.outline.length > 0 && (
-                              <DropdownMenuItem onClick={() => setPreviewCourse(course)}>
-                                <Eye className="mr-2 h-4 w-4" />
-                                Preview
-                              </DropdownMenuItem>
+                              <>
+                                <DropdownMenuItem onClick={() => navigate(`/courses/${course.id}`)}>
+                                  <BookOpen className="mr-2 h-4 w-4" />
+                                  Read
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setPreviewCourse(course)}>
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  Preview
+                                </DropdownMenuItem>
+                              </>
                             )}
-                            <DropdownMenuItem onClick={() => {
-                              setEditingCourse(course);
-                              setIsEditDialogOpen(true);
-                            }}>
+                            <DropdownMenuItem onClick={() => navigate(`/builder/${course.id}`)}>
                               <Edit className="mr-2 h-4 w-4" />
-                              Edit
+                              Edit in Builder
                             </DropdownMenuItem>
                             <DropdownMenuItem onClick={() => handleDuplicate(course.id)}>
                               <Copy className="mr-2 h-4 w-4" />
